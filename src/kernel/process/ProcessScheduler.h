@@ -18,9 +18,11 @@ public:
 
     ~ProcessScheduler() = default;
 
-    bool isInitialized();
+    void setInitialized();
 
-    void startUp();
+    uint32_t isInitialized() const;
+
+    void start();
 
     void ready(Process &process);
 
@@ -64,7 +66,7 @@ private:
 
 private:
 
-    bool initialized = false;
+    uint32_t initialized = 0;
 
     uint64_t lastTimestampMs = 0;
 

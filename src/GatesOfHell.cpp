@@ -44,7 +44,6 @@
 #include "kernel/service/InputService.h"
 #include "device/pci/Pci.h"
 #include "filesystem/core/Filesystem.h"
-#include "kernel/thread/Scheduler.h"
 #include "device/time/Pit.h"
 #include "kernel/service/DebugService.h"
 #include "kernel/service/ModuleLoader.h"
@@ -73,7 +72,7 @@ Kernel::Logger &GatesOfHell::log = Kernel::Logger::get("BOOT");
 
 AnsiOutputStream *GatesOfHell::outputStream = nullptr;
 
-Kernel::BootScreen *GatesOfHell::bootscreen = nullptr;
+Kernel::BootScreen *GatesOfHell::bootScreen = nullptr;
 
 Kernel::IdleThread GatesOfHell::idleThread;
 
@@ -87,6 +86,10 @@ int32_t main() {
 
     GatesOfHell::enter();
 }
+
+Kernel::BootCoordinator GatesOfHell::coordinator(Util::Array<Kernel::BootComponent*>({
+    &initServicesComponent, &initGraphicsComponent, &scanPciBusComponent,
+    &initFilesystemComponent, &initPortsComponent, &initMemoryManagersComponent}), []{ onBootFinished(); });
 
 Kernel::BootComponent GatesOfHell::initBiosComponent("InitBiosComponent", Util::Array<Kernel::BootComponent*>(0), []{
 
@@ -124,13 +127,13 @@ Kernel::BootComponent GatesOfHell::initGraphicsComponent("InitGraphicsComponent"
 
     log.trace("Finished initializing graphics");
 
-    bootscreen = new Kernel::BootScreen(coordinator);
+    bootScreen = new Kernel::BootScreen(coordinator);
 
     if(Kernel::Multiboot::Structure::getKernelOption("splash") == "true") {
 
-        bootscreen->init(xres, yres, bpp);
+        bootScreen->init(xres, yres, bpp);
 
-        Kernel::System::getKernelProcess().ready(*bootscreen);
+        bootScreen->start();
     }
 });
 
@@ -183,30 +186,6 @@ Kernel::BootComponent GatesOfHell::parsePciDatabaseComponent("ParsePciDatabaseCo
     log.trace ("Finished parsing PCI database");
 });
 
-Kernel::BootCoordinator GatesOfHell::coordinator(Util::Array<Kernel::BootComponent*>({&initServicesComponent,
-        &initGraphicsComponent, &scanPciBusComponent, &initFilesystemComponent, &initPortsComponent,
-        &initMemoryManagersComponent}), []{
-
-    Kernel::System::getService<Kernel::EventBus>()->start();
-
-    BeepFile *sound = BeepFile::load("/initrd/music/beep/startup.beep");
-
-    if(sound != nullptr) {
-        sound->play();
-        delete sound;
-    }
-
-    stdout = File::open("/dev/stdout", "w");
-
-    // bootscreen->finish();
-
-    Kernel::Logger::setConsoleLogging(false);
-
-    delete outputStream;
-
-    //Application::getInstance().start();
-});
-
 void GatesOfHell::enter() {
     
     log.trace("Booting hhuOS %s - git %s", BuildConfig::getVersion(), BuildConfig::getGitRevision());
@@ -221,14 +200,41 @@ void GatesOfHell::enter() {
         coordinator.addComponent(&parsePciDatabaseComponent);
     }
 
-    Kernel::System::getKernelProcess().ready(idleThread);
-    Kernel::System::getKernelProcess().ready(Kernel::InterruptManager().getInstance());
-    Kernel::System::getKernelProcess().ready(coordinator);
+    idleThread.start();
+    Kernel::InterruptManager::getInstance().start();
+    coordinator.start();
+
     Kernel::System::getKernelProcess().start();
 
-    Kernel::ProcessScheduler::getInstance().startUp();
+    Kernel::ProcessScheduler::getInstance().start();
 
     Cpu::halt();
+}
+
+void GatesOfHell::onBootFinished() {
+    Kernel::System::getService<Kernel::EventBus>()->start();
+
+    BeepFile *sound = BeepFile::load("/initrd/music/beep/startup.beep");
+
+    if(sound != nullptr) {
+        // sound->play();
+        delete sound;
+    }
+
+    stdout = File::open("/dev/stdout", "w");
+
+    // bootScreen->finish();
+
+    Kernel::Logger::setConsoleLogging(false);
+
+    delete outputStream;
+
+    // Kernel::Process *test = new Kernel::Process(*Kernel::Management::getInstance().createAddressSpace(0x1000, "FreeListMemoryManager"));
+    // Kernel::ProcessScheduler::getInstance().ready(*test);
+
+    //Kernel::Process::loadExecutable("/initrd/bin/hello");
+
+    //Application::getInstance().start();
 }
 
 void GatesOfHell::registerServices() {

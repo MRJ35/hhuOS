@@ -7,7 +7,21 @@ namespace Kernel {
 
 extern "C" {
     void setSchedInit();
+    uint32_t getSchedInit();
     void startFirstThread(Context *first);
+    void releaseSchedulerLock();
+}
+
+void setSchedInit() {
+    Kernel::ProcessScheduler::getInstance().setInitialized();
+}
+
+uint32_t getSchedInit() {
+    return Kernel::ProcessScheduler::getInstance().isInitialized();
+}
+
+void releaseSchedulerLock() {
+    Kernel::ProcessScheduler::getInstance().lock.release();
 }
 
 ProcessScheduler::ProcessScheduler(PriorityPattern &priorityPattern) : priorityPattern(priorityPattern), readyQueues(priorityPattern.getPriorityCount()) {
@@ -29,7 +43,7 @@ ProcessScheduler& ProcessScheduler::getInstance() noexcept {
     return instance;
 }
 
-void ProcessScheduler::startUp() {
+void ProcessScheduler::start() {
     lock.acquire();
 
     if (!isProcessWaiting()) {
@@ -37,10 +51,6 @@ void ProcessScheduler::startUp() {
     }
 
     currentProcess = &getNextProcess();
-
-    initialized = true;
-
-    setSchedInit();
 
     startFirstThread(currentProcess->scheduler->getNextThread()->kernelContext);
 }
@@ -107,9 +117,11 @@ void ProcessScheduler::yieldThreadSafe() {
         return;
     }
 
-    lock.acquire();
-
-    dispatch(getNextProcess());
+    if(lock.tryAcquire()) {
+        dispatch(getNextProcess());
+    } else {
+        return;
+    }
 }
 
 void ProcessScheduler::dispatch(Process &next) {
@@ -145,7 +157,11 @@ Process& ProcessScheduler::getNextProcess() {
     return *next;
 }
 
-bool ProcessScheduler::isInitialized() {
+void ProcessScheduler::setInitialized() {
+    initialized = 0x123456;
+}
+
+uint32_t ProcessScheduler::isInitialized() const {
     return initialized;
 }
 

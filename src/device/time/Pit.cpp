@@ -17,7 +17,6 @@
 #include "kernel/core/System.h"
 #include "kernel/interrupt/InterruptDispatcher.h"
 #include "device/misc/Pic.h"
-#include "kernel/thread/Scheduler.h"
 #include "Pit.h"
 
 IoPort control(0x43);
