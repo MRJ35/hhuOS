@@ -25,6 +25,7 @@
 #include <apps/Shell/Commands/Touch.h>
 #include <apps/Shell/Commands/Mkdir.h>
 #include <apps/Shell/Commands/Rm.h>
+#include <apps/Shell/Commands/Rmdir.h> // RMDIR declared here
 #include <apps/Shell/Commands/Cd.h>
 #include <apps/Shell/Commands/Clear.h>
 #include <apps/Shell/Commands/Insmod.h>
@@ -75,6 +76,7 @@ Shell::Shell() : Thread("Shell") {
     commands.put("touch", new Touch(*this));
     commands.put("mkdir", new Mkdir(*this));
     commands.put("rm", new Rm(*this));
+    commands.put("rmdir", new Rmdir(*this)); // rmdir put into command list
     commands.put("insmod", new Insmod(*this));
     commands.put("mount", new Mount(*this));
     commands.put("umount", new Umount(*this));
