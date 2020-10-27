@@ -51,6 +51,7 @@
 #include <apps/Shell/Commands/Asciimate.h>
 #include <devices/ports/PortEvent.h>
 #include <apps/Shell/Commands/NetworkTest.h>
+#include <apps/Shell/Commands/Pwd.h>
 
 extern "C" {
 #include <lib/libc/ctype.h>
@@ -76,7 +77,7 @@ Shell::Shell() : Thread("Shell") {
     commands.put("touch", new Touch(*this));
     commands.put("mkdir", new Mkdir(*this));
     commands.put("rm", new Rm(*this));
-    commands.put("rmdir", new Rmdir(*this)); // rmdir put into command list
+    commands.put("rmdir", new Rmdir(*this)); 
     commands.put("insmod", new Insmod(*this));
     commands.put("mount", new Mount(*this));
     commands.put("umount", new Umount(*this));
@@ -86,6 +87,7 @@ Shell::Shell() : Thread("Shell") {
     commands.put("mkvdd",  new MkVdd(*this));
     commands.put("delvdd",  new DelVdd(*this));
     commands.put("mkfs", new Mkfs(*this));
+    commands.put("pwd",new Pwd(*this));
     commands.put("diskinfo", new DiskInfo(*this));
     commands.put("uptime", new Uptime(*this));
     commands.put("date", new Date(*this));
