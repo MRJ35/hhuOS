@@ -16,6 +16,7 @@
 
 #include <lib/file/FileStatus.h>
 #include "Cd.h"
+// #include <bits/stdc++.h>
 
 Cd::Cd(Shell &shell) : Command(shell) {
 
@@ -30,11 +31,13 @@ void Cd::execute(Util::Array<String> &args) {
     }
 
     if(parser.getUnnamedArguments().length() < 1) {
+        shell.setCurrentWorkingDirectory(Directory::open("/"));
         return;
     }
 
     String path = parser.getUnnamedArguments()[0];
-    String absolutePath = calcAbsolutePath(path);
+    
+    String absolutePath = calcAbsolutePath(path); 
 
     if(!FileStatus::exists(absolutePath)) {
         stderr << args[0] << ": '" << path << "': Directory not found!" << endl;
@@ -47,6 +50,7 @@ void Cd::execute(Util::Array<String> &args) {
         stderr << args[0] << ": '" << path << "': Not a directory!" << endl;
     } else {
         shell.setCurrentWorkingDirectory(Directory::open(absolutePath));
+        // stdout << shell.getCurrentWorkingDirectory().getAbsolutePath() << endl;
     }
 
     delete fStat;
