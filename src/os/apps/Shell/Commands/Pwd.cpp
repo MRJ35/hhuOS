@@ -1,7 +1,11 @@
 #include <lib/file/FileStatus.h>
 #include "Pwd.h"
 
-String getEnteredCommand(Util::Array<String> unamedArguments);
+String getEnteredCommand(Util::Array<String> unamedArguments){
+    String command = "";
+    for(auto it:unamedArguments) command += it + " ";
+    return command;
+}
 
 Pwd::Pwd(Shell &shell) : Command(shell) {
 
@@ -15,7 +19,7 @@ void Pwd::execute(Util::Array<String> &args) {
         return;
     }
     if(parser.getUnnamedArguments().length() > 0) {
-        stderr << getEnteredCommand(parser.getUnnamedArguments()) << ": Invalid command" << endl;
+        stderr << args[0] << " " << getEnteredCommand(parser.getUnnamedArguments()) << ": Invalid command" << endl;
         return;
     } else{
         String path = shell.getCurrentWorkingDirectory().getAbsolutePath();
@@ -31,9 +35,5 @@ const String Pwd::getHelpText() {
            "  -h, --help: Show this help-message.";
 }
 
-String getEnteredCommand(Util::Array<String> unamedArguments){
-    String command = "";
-    for(auto it:unamedArguments) command += it;
-    return command;
-}
+
 

@@ -8,13 +8,12 @@
 
 /**  need to change this
  * Implementation of Command.
- * Deletes files. Multiple paths can be handed over.
+ * Deletes empty directory.
  *
- * -r, --recursive: Recursively delete an entire directory
  * -h, --help: Show help message
  *
- * @author Fabian Ruhland
- * @date 2018
+ * @author Namit Shah, Martand Javia, Harvish Jariwala
+ * @date 2020
  */
 class Rmdir : public Command {
 

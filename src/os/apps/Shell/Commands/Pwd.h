@@ -7,12 +7,12 @@
 
 /**
  * Implementation of Command.
- * Changes the shell's working directory.
+ * Displays the whole path of the current working directory.
  *
  * -h, --help: Show help message
  *
- * @author Fabian Ruhland
- * @date 2018
+ * @author Namit Shah, Martand Javia
+ * @date 2020
  */
 class Pwd : public Command {
 
